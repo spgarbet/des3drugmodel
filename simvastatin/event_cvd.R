@@ -53,25 +53,25 @@ us_prevalence_diabetes <- function(age)
 }
 
 # This causes a reassessment of CVD risk based on age
-days_till_reassess_cvd <- function(attrs,inputs) { 365 }
+days_till_reassess_cvd <- function(inputs) { 365 }
 
 reassess_cvd <- function(traj,inputs)
 {
   traj # Does nothing, but triggers reassessment, via reactive events
 }
 
-days_till_cvd <- function(attrs, inputs)
+days_till_cvd <- function(inputs)
 {
   # Are they at risk of being prescribed Statins => increased CVD risk
   # QUESTION: Should this be dictated by end of life, not just end of simulation?
-  # if(attrs[['aStartStatin']] > inputs$vHorizon*365)
+  # if(get_attribute(env, 'aStartStatin') > inputs$vHorizon*365)
   # {
   #   return(inputs$vHorizon*365+ 1) # No CVD present above background rate
   # }
-  hx         <- attrs[['aStatinRxHx']]
-  drug       <- attrs[['aCVDdrug']]
-  gender     <- attrs[['aGender']]
-  age        <- attrs[['aAge']]
+  hx         <- get_attribute(env, 'aStatinRxHx')
+  drug       <- get_attribute(env, 'aCVDdrug')
+  gender     <- get_attribute(env, 'aGender')
+  age        <- get_attribute(env, 'aAge')
   
   tot_chol      <- mean_us_chol(age, gender)
   sys_bp        <- mean_us_sys_bp(age, gender)

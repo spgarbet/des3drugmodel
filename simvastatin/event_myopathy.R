@@ -4,7 +4,7 @@ switch_statin <- function(inputs)
 {
   trajectory("Switch Statin") %>% 
     branch(
-      function(attrs) attrs[["aCVDdrug"]]+1,
+      function() get_attribute(env, "aCVDdrug")+1,
       continue=rep(TRUE,3),
       trajectory() %>% timeout(0), # Already no treatment, nothing to do
       trajectory("Switch to Second Line") %>% # Switch from Simvastatin -> Alternate
@@ -15,7 +15,7 @@ switch_statin <- function(inputs)
         set_attribute("aCVDdrug", 2),
       trajectory("Evaluate Alternate Treatment") %>%  # On Alternate
         branch(
-          function(attrs) min(attrs[["aStatinRxHx"]], 2), # 1 = 2nd round of alternate, 2+ = Stop
+          function() min(get_attribute(env, "aStatinRxHx"), 2), # 1 = 2nd round of alternate, 2+ = Stop
           continue=c(TRUE,TRUE),
           trajectory("Continuing Alternate Treatment") %>%
             set_attribute("aStatinRxHx", 2), # 2nd prescription
@@ -32,7 +32,7 @@ stop_statin_treatment <- function(inputs)
 {
   trajectory("Stop Statin Treatment") %>%
     branch(
-      function(attrs) attrs[["aCVDdrug"]]+1,
+      function() get_attribute(env, "aCVDdrug")+1,
       continue=rep(TRUE,3),
       trajectory() %>% timeout(0), # Already no treatment
       trajectory() %>% mark("sim_stopped")  %>% release("simvastatin"),
@@ -40,14 +40,6 @@ stop_statin_treatment <- function(inputs)
     ) %>%
     set_attribute("aCVDdrug", 0)
 }
-
-redraw_myo <- function(traj)
-  {
-    traj %>%
-      set_attribute("aMildMyoTime",function(attrs) now(env) + days_till_mild_myopathy(attrs,inputs)) %>%
-      set_attribute("aModMyoTime",function(attrs) now(env) + days_till_mod_myopathy(attrs,inputs)) %>%
-      set_attribute("aSevMyoTime",function(attrs) now(env) + days_till_sev_myopathy(attrs,inputs)) 
-  }  
 
 
 next_step <- function(traj, inputs, probability_stop)
@@ -58,18 +50,16 @@ next_step <- function(traj, inputs, probability_stop)
     continue=rep(TRUE,2),
     switch_statin(inputs),
     stop_statin_treatment(inputs)
-  ) %>% 
-    #redraw myopathy risk
-    redraw_myo()
+  )
 }
 
 # Mild Myopathy events
-days_till_mild_myopathy <- function(attrs, inputs)
+days_till_mild_myopathy <- function(inputs)
 {
  if (inputs$vDrugs$vSimvastatin) {
   sim  <- inputs$simvastatin
-  drug <- attrs[["aCVDdrug"]]
-  geno <- attrs[["aCVDgenotype"]]
+  drug <- get_attribute(env, "aCVDdrug")
+  geno <- get_attribute(env, "aCVDgenotype")
 
   time_frame <- 1825 # 5 Years in days
   risk       <- if     (drug == 0) sim$vMildMyoBaseNoVar
@@ -87,7 +77,8 @@ days_till_mild_myopathy <- function(attrs, inputs)
   rate       <- -log(1-risk)*rr/time_frame
   t2e <- rexp(1, rate)
 
-  if(t2e > 365*5) {return(inputs$vHorizon*365+1)}
+  # NOTE: Events are considered to only be in the first year. (but odds were for 5!?)
+  if(t2e > 365) {return(inputs$vHorizon*365+1)}
 
   return(t2e)
   } else 
@@ -106,12 +97,12 @@ mild_myopathy <- function(traj, inputs)
 }
 
 # Moderate myopathy events
-days_till_mod_myopathy <- function(attrs, inputs)
+days_till_mod_myopathy <- function(inputs)
 {
  if (inputs$vDrugs$vSimvastatin) {
   sim  <- inputs$simvastatin
-  drug <- attrs[["aCVDdrug"]]
-  geno <- attrs[["aCVDgenotype"]]
+  drug <- get_attribute(env, "aCVDdrug")
+  geno <- get_attribute(env, "aCVDgenotype")
 
   time_frame <- 1825 # 5 Years in days
   risk       <- if     (drug == 0) sim$vModMyoBaseNoVar
@@ -129,7 +120,8 @@ days_till_mod_myopathy <- function(attrs, inputs)
   rate       <- -log(1-risk)*rr/time_frame
   t2e <- rexp(1, rate)
 
-  if(t2e > 365*5) {return(inputs$vHorizon*365+1)}
+  # NOTE: Events are considered to only be in the first year. (but odds were for 5!?)
+  if(t2e > 365) {return(inputs$vHorizon*365+1)}
 
   return(t2e)
     } else 
@@ -147,12 +139,12 @@ mod_myopathy <- function(traj,inputs)
 }
 
 # Severe myopathy events
-days_till_sev_myopathy <- function(attrs,inputs)
+days_till_sev_myopathy <- function(inputs)
 {
  if (inputs$vDrugs$vSimvastatin) {
   sim  <- inputs$simvastatin
-  drug <- attrs[["aCVDdrug"]]
-  geno <- attrs[["aCVDgenotype"]]
+  drug <- get_attribute(env, "aCVDdrug")
+  geno <- get_attribute(env, "aCVDgenotype")
 
   time_frame <- 1825 # 5 Years in days
   risk       <- if     (drug == 0) sim$vSevMyoBaseNoVar
@@ -170,7 +162,8 @@ days_till_sev_myopathy <- function(attrs,inputs)
   rate       <- -log(1-risk)*rr/time_frame
   t2e <- rexp(1, rate)
 
-  if(t2e > 365*5) {return(inputs$vHorizon*365+1)}
+  # NOTE: Events are considered to only be in the first year. (but odds were for 5!?)
+  if(t2e > 365) {return(inputs$vHorizon*365+1)}
 
   return(t2e)
       } else 

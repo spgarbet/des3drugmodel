@@ -2,7 +2,7 @@
 stop_simvastatin_treatment <- function(traj)
 {
   traj %>% branch(
-    function(attrs) attrs[["aCVDdrug"]]+1,
+    function() get_attribute(env, "aCVDdrug")+1,
     continue=rep(TRUE,3),
     trajectory() %>% timeout(0),
     trajectory() %>% release("simvastatin"),

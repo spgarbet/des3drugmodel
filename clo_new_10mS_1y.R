@@ -1,5 +1,5 @@
 ### Single Drug - low Weibull
-setwd("./right-simulation")
+#setwd("./right-simulation")
 pkg = list("simmer",
            "data.table",
            "plyr",
@@ -13,18 +13,11 @@ pkg = list("simmer",
 invisible(lapply(pkg, require, character.only = TRUE))
 rm(list=ls())
 
-#load random seeds
-load("./seeds50.rda")
-sdt <- seeds50
-
-args <- commandArgs(trailing = TRUE)
-num_seed <- as.integer(args[1])
-
 env  <- simmer("RIGHT-v1.1")
 
 exec.simulation <- function(inputs)
 {
-        set.seed(sdt[num_seed+1])
+        set.seed(123)
         env  <<- simmer("RIGHT-v1.1")
         traj <- simulation(env, inputs)
         env %>% create_counters(counters)
@@ -39,7 +32,7 @@ exec.simulation <- function(inputs)
 
 source("./init_jon_sept18.R")
 options(digits=5)
-inputs$vN <- 1000000
+inputs$vN <- 1000
 inputs$vHorizon <- 1
 #inputs$warfarin$vscale_timetowarfarin <- epsilon
 inputs$clopidogrel$vDAPTScale <- epsilon
@@ -105,7 +98,7 @@ ct <- results %>% filter(resource %in% ae) %>% group_by(name,strategy,resource) 
 
 ###Costs
 source("./costs_ICER_36525.R")
-inputs$vN <- 1000000
+inputs$vN <- 1000
 s1 <- cost.qaly(subset(results,strategy=="None"),inputs) %>% mutate(strategy="None")
 s2 <- cost.qaly(subset(results,strategy=="Reactive Single"),inputs) %>% mutate(strategy="Reactive Single")
 

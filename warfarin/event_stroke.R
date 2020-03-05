@@ -1,10 +1,10 @@
 #t2e_rexp function defined in event_bleed
-days_till_stroke <- function(attrs, inputs)
+days_till_stroke <- function(inputs)
 { 
-  switch = attrs[["sWarfarinEvents"]]
+  switch = get_attribute(env, "sWarfarinEvents")
   if(switch==1) {
-    x = attrs[["aINR"]]
-    if(attrs[["aWarfarinIndication"]]==1) #AF
+    x = get_attribute(env, "aINR")
+    if(get_attribute(env, "aWarfarinIndication")==1) #AF
     { 
       if(x<1.5)                return(t2e_rexp(inputs$warfarin$vAF_Risk_Stroke_1.5,inputs$warfarin$vRRStroke_AF,inputs$warfarin$vTimeDurStroke))
       else if(x>=1.5 & x<2)   return(t2e_rexp(inputs$warfarin$vAF_Risk_Stroke_1.5to2,inputs$warfarin$vRRStroke_AF,inputs$warfarin$vTimeDurStroke))
@@ -26,8 +26,8 @@ stroke_event <- function(traj, inputs)
 {
   traj %>%
     branch(
-      function(attrs) {
-        if(attrs[["aINR"]]<2) return(1)
+      function() {
+        if(get_attribute(env, "aINR")<2) return(1)
         else                  return(2)
       },
       continue=rep(TRUE,2),
