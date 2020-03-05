@@ -5,11 +5,10 @@ source('./main/age-gompertz.R')
 # Given attributes of a patient (trajectory), it returns in days 
 # how long till the patient would die a secular death.
 #
-# NOTE: The variable in must be named attrs
-days_till_death <- function(attrs, inputs)
+days_till_death <- function(inputs)
 {
-  age       <- attrs[['aAge']]
-  death_age <- ageAtDeath(age, attrs[['aGender']])
+  age       <- get_attribute(env, 'aAge')
+  death_age <- ageAtDeath(age, get_attribute(env, 'aGender'))
   
   return(365*(death_age-age))
 }

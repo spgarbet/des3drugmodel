@@ -1,9 +1,9 @@
-days_till_6m <- function(attrs, inputs)
+days_till_6m <- function(inputs)
 { 
-  on = attrs[["aOnWarfarin"]]
-  indi = attrs[["aWarfarinIndication"]]
+  on = get_attribute(env, "aOnWarfarin")
+  indi = get_attribute(env, "aWarfarinIndication")
   if(on==1 & indi==2)  {t2e <- 30*3 } # only Non-AF patients can trigger this event (redraw at 90 days)
-  else {t2e <- inputs$vHorizon*365+2}
+  else {t2e <- inputs$vHorizon*365+1}
   return(t2e)
 }  
 
